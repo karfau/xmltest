@@ -1,0 +1,26 @@
+{
+  "name": "xmltest",
+  "version": "1.0.0",
+  "description": "Redistribution of <ftp://ftp.jclark.com/pub/xml/xmltest.zip> as an npm package. The linked zip file was taken from <http://www.jclark.com/xml/> which describes it's purpose and links more related resources.",
+  "engines": {
+    "node": ">=10"
+  },
+  "files": [
+    "xmltest.zip"
+  ],
+  "scripts": {
+    "postinstall": "extract-zip xmltest.zip $PWD/data"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karfau/xmltest.git"
+  },
+  "keywords": [
+    "xml",
+    "test"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "extract-zip": "2.0.1"
+  }
+}

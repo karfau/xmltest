@@ -23,15 +23,32 @@ They are sorted into folders:
 2. The second level seperates standalone (`sa`) files from files that are not standalone (`not-sa`) or have dependencies to external entities (`ext-sa`)
 3. (Only inside `valid`) the `out` folder contains the canonical representation of the test cases, which can be useful as an expected value.
 
+```
+.
+├── invalid
+├── not-wf
+│   ├── ext-sa
+│   ├── not-sa
+│   └── sa
+└── valid
+    ├── ext-sa
+    │   └── out
+    ├── not-sa
+    │   └── out
+    └── sa
+        └── out
+```
+
 ## Usage
 
-TBD: `npm install -D github:karfau/xmltest`
+- `npm install -D github:karfau/xmltest`
+  The `potinstall` script extracts `xmltest.zip` into `./node_modules/xmltest/data/`.
 
-TBD: The `xmltest.zip` file is extracted into `node_modules/xmltest/` as part of `postinstall`.
+- Load the files from the `./node_modules/xmltest/data/` to use them in your tests.
 
-'''If you think it's a violation of the license provided by James Clark, please let me know.'''
+'''If you think it's a violation of the license offered by James Clark, please [let me know](mailto:coder@karfau.de).'''
 
 ## Related Resources
 
-- TBD
-
+- <http://www.jclark.com/xml/>
+- <http://cafeconleche.org/SAXTest/>
