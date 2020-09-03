@@ -171,7 +171,15 @@ const FILTERS = {
       OUT: combineFilters('xmltest/valid/sa/out')
     }
   },
+  /**
+   * @param s {string}
+   * @returns {boolean}
+   */
   ent: s => s.endsWith('.ent'),
+  /**
+   * @param s {string}
+   * @returns {boolean}
+   */
   xml: s => s.endsWith('.xml')
 }
 
@@ -180,7 +188,20 @@ const FILTERS = {
  * to resolve files that are related to a xml file.
  */
 const RELATED = {
+  /**
+   * Returns the name of the `.ent` file with the same name as the given `.xml` file.
+   *
+   * @param pathInZip {string}
+   * @returns {string}
+   */
   ent: pathInZip => pathInZip.replace(/\.xml$/, '.ent'),
+  /**
+   * Returns the name of the related `./out/filename.xml` file with the same name as the given `.xml` file.
+   * Be aware that only the `valid` folders have such files.
+   *
+   * @param pathInZip {string}
+   * @returns {string}
+   */
   out: pathInZip => [path.dirname(pathInZip), 'out', path.basename(pathInZip)].join('/')
 }
 
@@ -220,7 +241,7 @@ const getFiltered = (data, filters) => {
  * @see combineFilters
  * @see load
  *
- * @param filters {(string | RegExp | Predicate)[]}
+ * @param filters {string | RegExp | Predicate}
  * @returns {Promise<string | Partial<typeof entries>>} the value
  *          if the only filter only results a single entry,
  *          otherwise on object with all keys that match the filter.
@@ -231,7 +252,7 @@ const getContent = async (...filters) => getFiltered(await load(), filters)
  * Filters content of `xmltest.json` by applying `filters` to it's keys.
  *
  * @see combineFilters
- * @param filters {(string | RegExp | Predicate)[]}
+ * @param filters {string | RegExp | Predicate}
  * @returns {string | Partial<typeof entries>} the value
  *          if the only filter only results a single entry,
  *          otherwise on object with all keys that match the filter.
