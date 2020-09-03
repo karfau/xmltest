@@ -1,16 +1,16 @@
 {
   "name": "xmltest",
   "version": "1.0.0",
-  "description": "Redistribution of <ftp://ftp.jclark.com/pub/xml/xmltest.zip> as an npm package. The linked zip file was taken from <http://www.jclark.com/xml/> which describes it's purpose and links more related resources.",
+  "description": "Redistribution of <ftp://ftp.jclark.com/pub/xml/xmltest.zip> as a npm package to make it easy to access the test cases from javascript.\nThe linked zip file is from <http://www.jclark.com/xml/> which describes it's purpose and links more related resources.",
   "engines": {
     "node": ">=10"
   },
   "files": [
-    "xmltest.zip"
+    "xmltest.zip",
+    "xmltest.json"
   ],
-  "scripts": {
-    "postinstall": "extract-zip xmltest.zip $PWD/data"
-  },
+  "main": "xmltest.js",
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "https://github.com/karfau/xmltest.git"
@@ -21,6 +21,16 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "extract-zip": "2.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "14.6.2",
+    "@types/yauzl": "2.9.1",
+    "get-stream": "6.0.0",
+    "runex": "0.4.1",
+    "yauzl": "2.10.0"
+  },
+  "peerDependencies": {
+    "get-stream": "^6.0.0",
+    "yauzl": "^2.10.0"
   }
 }
