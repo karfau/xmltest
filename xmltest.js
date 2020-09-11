@@ -278,7 +278,8 @@ const run = async (...filters) => filters.length === 0
   ? getEntries()
   : getContent.apply(null, filters)
 
-const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0)}!}`
+const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0).toString(16)}!}`
+
 /**
  * Some xml documents (purposely) contain characters that are not visible
  * and make it hard to reason about a test result.
@@ -294,7 +295,7 @@ const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0)}!}`
 const replaceNonTextChars = (value, wrapper = replaceWithWrappedCodePointAt) =>
   value === undefined || value === ''
     ? value
-    : value.toString().replace(/[\p{Cc}\uFFFF]/gu, wrapper)
+    : value.toString().replace(/[\u0000\u001B\u001F\uDC00\uD800\uFFFE\uFFFF]/gu, wrapper)
 
 module.exports = {
   combineFilters,
