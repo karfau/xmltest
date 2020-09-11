@@ -6,9 +6,14 @@
     "node": ">=10"
   },
   "files": [
+    "README.md",
+    "LICENSE",
     "xmltest.zip",
     "xmltest.json"
   ],
+  "bin": {
+    "xmltest": "xmltest.js"
+  },
   "main": "xmltest.js",
   "scripts": {},
   "repository": {
