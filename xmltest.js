@@ -278,6 +278,24 @@ const run = async (...filters) => filters.length === 0
   ? getEntries()
   : getContent.apply(null, filters)
 
+const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0)}!}`
+/**
+ * Some xml documents (purposely) contain characters that are not visible
+ * and make it hard to reason about a test result.
+ * Those characters also cause git to think a file is binary,
+ * when the test output is being committed (e.g. in a jest snapshot).
+ * By replacing them with a visual replacement using `codePointAt`
+ * (e.g. replacing NUL/`&#0;` with `{!0!}`,
+ * it's makes those more obvious.
+ *
+ * @param value {string | {toString: function (): string} | undefined}
+ * @param wrapper {function (string): string}
+ */
+const replaceNonTextChars = (value, wrapper = replaceWithWrappedCodePointAt) =>
+  value === undefined || value === ''
+    ? value
+    : value.toString().replace(/[\p{Cc}\uFFFF]/gu, wrapper)
+
 module.exports = {
   combineFilters,
   FILTERS,
@@ -286,6 +304,8 @@ module.exports = {
   getContent,
   getEntries,
   load,
+  replaceNonTextChars,
+  replaceWithWrappedCodePointAt,
   run
 }
 
