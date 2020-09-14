@@ -42,7 +42,11 @@ xmltest
 
 ## Usage
 
+### Install
+
 - `npm install -D github:karfau/xmltest`
+
+### In tests
 
 - In you tests:
 
@@ -69,9 +73,24 @@ describe('unit', () => {
 });
 ```
 
+### command line interface
+
+- `node xmltest` or `npx xmltest` will print all entries as JSON, similar to calling `getEntries`
+- passing one or multiple arguments will use them with `createFilters` 
+  and return the filtered content in the same way as `getContent` does:
+  - with **only** one argument and a single matching entry it only returns the content itself
+  - otherwise, it returns a json where the keys are the path inside the zip file, and the values are the content
+   
+
+### Extract & Inspect zip content
+
+In case the command line interface is not sufficient, 
+`npm run extract` will extract `xmltest.zip` into the `.gitignore`d `data` directory.
+
+
 '''If you think it's a violation of the license offered by James Clark, please [let me know](mailto:coder@karfau.de).'''
 
-## API
+### API
 
 All methods have doc comments that include types.
 
@@ -82,11 +101,14 @@ All methods have doc comments that include types.
 - `getContent`
 - `getEntries`
 - `load`
+- `replaceWithWrappedCodePointAt`
+- `replaceNonTextChars`
 - `run`
 
-(Feel free to contribute by automating the extraction to this or other file.)
+(Feel free to contribute by automating the extraction of the documentation to this or another file.)
 
 ## Related Resources
 
-- <http://www.jclark.com/xml/>
-- <http://cafeconleche.org/SAXTest/>
+- The page of the author linking to xmltest.zip: <http://www.jclark.com/xml/>
+- THe way I found those testcases since they are part of a bigger testsuite for (Java SAX parsers) <http://cafeconleche.org/SAXTest/>
+- The PR that initially led to the creation of this package: <https://github.com/xmldom/xmldom/pull/112>
