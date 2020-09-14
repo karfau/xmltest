@@ -15,7 +15,9 @@
     "xmltest": "xmltest.js"
   },
   "main": "xmltest.js",
-  "scripts": {},
+  "scripts": {
+    "extract": "npx extract-zip xmltest.zip $PWD/data"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/karfau/xmltest.git"
