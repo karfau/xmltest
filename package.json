@@ -16,7 +16,9 @@
   },
   "main": "xmltest.js",
   "scripts": {
-    "extract": "npx extract-zip xmltest.zip $PWD/data"
+    "extract": "npx extract-zip xmltest.zip $PWD/data",
+    "test": "jest",
+    "start": "jest --watch"
   },
   "repository": {
     "type": "git",
