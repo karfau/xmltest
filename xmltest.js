@@ -126,12 +126,19 @@ const combineFilters = (...tests) => {
     if (typeof test === 'function') {
       return test
     }
+    let result;
     if (typeof test.test === 'function') {
-      return s => test.test(s)
+      result = s => test.test(s)
+      result.toString = () => `${test.toString}.test(str)`
+    } else {
+      result = s => s.includes(test)
+      result.toString = () => `str.includes('${test}')`
     }
-    return s => s.includes(test)
+    return result;
   })
-  return s => checks.every(check => check(s))
+  const result = s => checks.every(check => check(s));
+  result.toString = () => `[combineFilters:(str) => ${checks.join(' && ')}]`
+  return result;
 }
 
 /**
