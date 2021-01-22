@@ -18,9 +18,13 @@ describe("run", () => {
     test("should return entries without any arguments", async () => {
       // FYI: xmltest.zip doesn't contain any folder entries
       expect(await run()).toEqual(entries);
+      expect(contentLoader.CACHE.keys()).toHaveLength(0);
+      expect(entriesLoader.CACHE.keys()).toHaveLength(1);
     });
     test("should return all (file) keys in entries with first argument 'xmltest'", async () => {
       expect(Object.keys(await run("xmltest"))).toEqual(Object.keys(entries));
+      expect(contentLoader.CACHE.keys()).toHaveLength(1);
+      expect(entriesLoader.CACHE.keys()).toHaveLength(0);
     });
     test("should return the content of readme.html with first argument 'xmltest/readme.html'", async () => {
       expect(await run(README_PATH)).toMatch(/^<HTML>.*/);

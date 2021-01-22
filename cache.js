@@ -10,7 +10,7 @@ exports.cache = () => {
     has: (key) => map.has(key),
     keys: () => [...map.keys()],
     set: (key, value) => {
-      map.set(key, value)
+      map.set(key, value);
     },
   };
 };
