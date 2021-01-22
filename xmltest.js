@@ -17,22 +17,22 @@ const {Entry} = require('yauzl')
 
 /**
  * Loads all file content from the zip file and caches it in it's DATA property.
- * (To clear the cache assign `null` to it: `dataLoader.DATA = null`.)
+ * (To clear the cache assign `null` to it: `contentLoader.DATA = null`.)
  *
  * @param resolve {PromiseResolve}
  * @param reject {PromiseReject}
  * @returns {LoaderInstance}
  */
-const dataLoader = (resolve, reject) => {
-  if (dataLoader.DATA) {
-    resolve({...dataLoader.DATA})
+const contentLoader = (resolve, reject) => {
+  if (contentLoader.DATA) {
+    resolve({...contentLoader.DATA})
   }
   /** @type {Partial<typeof entries>} */
   const data = {}
 
   const end = () => {
-    dataLoader.DATA = data
-    resolve(dataLoader.DATA)
+    contentLoader.DATA = data
+    resolve(contentLoader.DATA)
   }
 
   const entry = async (entry, readFile) => {
@@ -45,9 +45,9 @@ const dataLoader = (resolve, reject) => {
 /**
  * The module level cache for the zip file content.
  *
- * @type {null | typeof entries}
+ * @type {null | Record<string, string>}
  */
-dataLoader.DATA = null
+contentLoader.DATA = null
 
 /**
  * Loads the list of files and directories.
@@ -62,7 +62,7 @@ dataLoader.DATA = null
  * @param reject {PromiseReject}
  * @returns {LoaderInstance}
  */
-const jsonLoader = (resolve, reject) => {
+const entriesLoader = (resolve, reject) => {
   /** @type {Partial<typeof entries>} */
   const data = {}
   const end = () => {
@@ -79,14 +79,14 @@ const jsonLoader = (resolve, reject) => {
 /**
  * Uses `loader` to iterate entries in a zipfile using `yauzl`.
  *
- * @see dataLoader
- * @see jsonLoader
+ * @see contentLoader
+ * @see entriesLoader
  *
- * @param loader {Loader} the loader to use (default: `dataLoader`)
+ * @param loader {Loader} the loader to use (default: `contentLoader`)
  * @param location {string} absolute path to zip file (default: xmltest.zip)
  * @returns {Promise<typeof entries>}
  */
-const load = async (loader = dataLoader, location = path.join(__dirname, 'xmltest.zip')) => {
+const load = async (loader = contentLoader, location = path.join(__dirname, 'xmltest.zip')) => {
   if (loader.DATA) {
     return {...loader.DATA}
   }
@@ -295,7 +295,7 @@ const run = async (...filters) => {
   }
 
   return getFiltered(
-    await load(filters.length === 0 ? jsonLoader : dataLoader, file),
+    await load(filters.length === 0 ? entriesLoader : contentLoader, file),
     filters
   );
 };
@@ -327,8 +327,8 @@ module.exports = {
   getContent,
   getEntries,
   load,
-  contentLoader: dataLoader,
-  entriesLoader: jsonLoader,
+  contentLoader,
+  entriesLoader,
   replaceNonTextChars,
   replaceWithWrappedCodePointAt,
   run
