@@ -16,7 +16,8 @@ const {Entry} = require('yauzl')
  */
 
 /**
- * Loads all file content from the zip file and caches it
+ * Loads all file content from the zip file and caches it in it's DATA property.
+ * (To clear the cache assign `null` to it: `dataLoader.DATA = null`.)
  *
  * @param resolve {PromiseResolve}
  * @param reject {PromiseReject}
@@ -95,13 +96,13 @@ const load = async (loader = dataLoader, location = path.join(__dirname, 'xmltes
   )
   const readFile = promisify(zipfile.openReadStream.bind(zipfile))
   return new Promise((resolve, reject) => {
-    const handler = loader(resolve, reject)
-    zipfile.on('end', handler.end)
+    const handler = loader(resolve, reject);
+    zipfile.on('end', handler.end);
     zipfile.on('entry', async (entry) => {
-      await handler.entry(entry, readFile)
-      zipfile.readEntry()
-    })
-    zipfile.readEntry()
+      await handler.entry(entry, readFile);
+      zipfile.readEntry();
+    });
+    zipfile.readEntry();
   })
 }
 
@@ -268,22 +269,36 @@ const getEntries = (...filters) => getFiltered(entries, filters)
 
 /**
  * Makes module executable using `runex`.
- * With no arguments: Returns Object structure to store in `xmltest.json`
+ * If the first argument begins with `/`, `./` or `../` and ends with `.zip`,
+ * it is removed from the list of filter arguments and used as the path
+ * to the archive to load.
+ *
+ * With no filter arguments: Returns Object structure to store in `xmltest.json`
  *                    `npx runex . > xmltest.json`
- * With one argument: Returns content string if exact key match,
+ * With one filter argument: Returns content string if exact key match,
  *                    or content dict with filtered keys
- * With more arguments: Returns content dict with filtered keys
+ * With more filter arguments: Returns content dict with filtered keys
  *
  * @see getFiltered
  * @see combineFilters
  * @see load
+ * @see https://github.com/karfau/runex
  *
- * @param filters {(string | RegExp | Predicate)[]}
+ * @param filters {string}
  * @returns {Promise<string | Partial<typeof entries>>}
  */
-const run = async (...filters) => filters.length === 0
-  ? getEntries()
-  : getContent.apply(null, filters)
+const run = async (...filters) => {
+  let file;
+
+  if (filters.length > 0 && /^\.?\.?\/.*\.zip$/.test(filters[0])) {
+    file = filters.shift();
+  }
+
+  return getFiltered(
+    await load(filters.length === 0 ? jsonLoader : dataLoader, file),
+    filters
+  );
+};
 
 const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0).toString(16)}!}`
 
@@ -312,13 +327,15 @@ module.exports = {
   getContent,
   getEntries,
   load,
+  contentLoader: dataLoader,
+  entriesLoader: jsonLoader,
   replaceNonTextChars,
   replaceWithWrappedCodePointAt,
   run
 }
 
 if (require.main === module) {
-  // if you don't want to use `runex` just "launch" this module/package
-  module.exports.run().then(console.log)
+  // if you don't want to use `runex` just "launch" this module/package:
+  // node xmltest ...
+  module.exports.run(...process.argv.slice(2)).then(console.log)
 }
-
