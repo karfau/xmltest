@@ -6,6 +6,7 @@
     "node": ">=10"
   },
   "files": [
+    "cache.js",
     "README.md",
     "LICENSE",
     "xmltest.zip",
@@ -18,7 +19,9 @@
   "scripts": {
     "extract": "npx extract-zip xmltest.zip $PWD/data",
     "test": "jest",
-    "start": "jest --watch"
+    "test.zip": "./test.zip.sh",
+    "start": "npm run test -- --watch",
+    "xmltest.json": "runex ./xmltest.js > xmltest.json"
   },
   "repository": {
     "type": "git",

@@ -1,13 +1,15 @@
-const entries = require('./xmltest.json')
 const getStream = require('get-stream')
 const path = require('path')
 const {promisify} = require('util')
 const yauzl = require('yauzl')
+
+const {cache} = require('./cache')
 // for type definitions
 const {Entry} = require('yauzl')
 
 /**
- * @typedef PromiseResolve {function (response: typeof entries)}
+ * @typedef Entries {Record<string, string | undefined>}
+ * @typedef PromiseResolve {function (response: Entries)}
  * @typedef PromiseReject {function (reason: Error)}
  * @typedef ReadFile {async function (response: Entry): Promise<Readable>}
  * @typedef EntryHandler {async function (response: Entry, readFile: ReadFile): Promise<void>}
@@ -16,23 +18,18 @@ const {Entry} = require('yauzl')
  */
 
 /**
- * Loads all file content from the zip file and caches it in it's DATA property.
- * (To clear the cache assign `null` to it: `contentLoader.DATA = null`.)
+ * Loads all file content from the zip file.
  *
  * @param resolve {PromiseResolve}
  * @param reject {PromiseReject}
  * @returns {LoaderInstance}
  */
 const contentLoader = (resolve, reject) => {
-  if (contentLoader.DATA) {
-    resolve({...contentLoader.DATA})
-  }
-  /** @type {Partial<typeof entries>} */
-  const data = {}
+  /** @type {Entries} */
+  const data = {};
 
   const end = () => {
-    contentLoader.DATA = data
-    resolve(contentLoader.DATA)
+    resolve(data)
   }
 
   const entry = async (entry, readFile) => {
@@ -45,9 +42,9 @@ const contentLoader = (resolve, reject) => {
 /**
  * The module level cache for the zip file content.
  *
- * @type {null | Record<string, string>}
+ * @type {null | Entries}
  */
-contentLoader.DATA = null
+contentLoader.CACHE = cache();
 
 /**
  * Loads the list of files and directories.
@@ -63,7 +60,7 @@ contentLoader.DATA = null
  * @returns {LoaderInstance}
  */
 const entriesLoader = (resolve, reject) => {
-  /** @type {Partial<typeof entries>} */
+  /** @type {Entries} */
   const data = {}
   const end = () => {
     resolve(data)
@@ -75,20 +72,28 @@ const entriesLoader = (resolve, reject) => {
   }
   return {end, entry}
 }
+entriesLoader.CACHE = cache();
 
 /**
- * Uses `loader` to iterate entries in a zipfile using `yauzl`.
+ * Uses `loader` to iterate entries in a zip file using `yauzl`.
+ * If `loader.CACHE` is set it is assumed to be an instance of `cache`,
+ * and is used to store the resolved result.
+ * If `loader.CACHE.has(location)` is true the zip file is not read again,
+ * since the cached result is returned.
+ * Use `loader.CACHE.delete(location)` or `loader.CACHE.clear()` when needed.
  *
  * @see contentLoader
+ * @see contentLoader.CACHE
  * @see entriesLoader
+ * @see entriesLoader.CACHE
  *
  * @param loader {Loader} the loader to use (default: `contentLoader`)
  * @param location {string} absolute path to zip file (default: xmltest.zip)
- * @returns {Promise<typeof entries>}
+ * @returns {Promise<Entries>}
  */
 const load = async (loader = contentLoader, location = path.join(__dirname, 'xmltest.zip')) => {
-  if (loader.DATA) {
-    return {...loader.DATA}
+  if (loader.CACHE && loader.CACHE.has(location)) {
+    return {...loader.CACHE.get(location)}
   }
 
   const zipfile = await promisify(yauzl.open)(
@@ -96,7 +101,13 @@ const load = async (loader = contentLoader, location = path.join(__dirname, 'xml
   )
   const readFile = promisify(zipfile.openReadStream.bind(zipfile))
   return new Promise((resolve, reject) => {
-    const handler = loader(resolve, reject);
+    const resolver = loader.CACHE
+      ? (data) => {
+        loader.CACHE.set(location, data);
+        resolve(data);
+      }
+      : resolve;
+    const handler = loader(resolver, reject);
     zipfile.on('end', handler.end);
     zipfile.on('entry', async (entry) => {
       await handler.entry(entry, readFile);
@@ -217,9 +228,9 @@ const RELATED = {
  * Filters `data` by applying `filters` to it's keys
  *
  * @see combineFilters
- * @param data {typeof entries}
+ * @param data {Entries}
  * @param filters {(string | RegExp | Predicate)[]}
- * @returns {string | Partial<typeof entries>} the value
+ * @returns {string | Entries} the value
  *          if the only filter only results a single entry,
  *          otherwise on object with all keys that match the filter.
  */
@@ -237,7 +248,7 @@ const getFiltered = (data, filters) => {
         acc[key] = data[key]
         return acc
       },
-      /** @type {Partial<typeof entries>} */{}
+      /** @type {Entries} */{}
     )
 }
 
@@ -250,7 +261,7 @@ const getFiltered = (data, filters) => {
  * @see load
  *
  * @param filters {string | RegExp | Predicate}
- * @returns {Promise<string | Partial<typeof entries>>} the value
+ * @returns {Promise<string | Entries>} the value
  *          if the only filter only results a single entry,
  *          otherwise on object with all keys that match the filter.
  */
@@ -261,11 +272,12 @@ const getContent = async (...filters) => getFiltered(await load(), filters)
  *
  * @see combineFilters
  * @param filters {string | RegExp | Predicate}
- * @returns {string | Partial<typeof entries>} the value
+ * @returns {string | Entries} the value
  *          if the only filter only results a single entry,
  *          otherwise on object with all keys that match the filter.
  */
-const getEntries = (...filters) => getFiltered(entries, filters)
+const getEntries = (...filters) => getFiltered(require('./xmltest.json')
+  , filters)
 
 /**
  * Makes module executable using `runex`.
@@ -285,7 +297,7 @@ const getEntries = (...filters) => getFiltered(entries, filters)
  * @see https://github.com/karfau/runex
  *
  * @param filters {string}
- * @returns {Promise<string | Partial<typeof entries>>}
+ * @returns {Promise<string | Entries>}
  */
 const run = async (...filters) => {
   let file;

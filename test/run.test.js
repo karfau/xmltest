@@ -1,5 +1,5 @@
 const entries = require("../xmltest.json");
-const { run, contentLoader } = require("../xmltest.js");
+const { run, contentLoader, entriesLoader } = require("../xmltest.js");
 const path = require("path");
 
 const README_PATH = "xmltest/readme.html";
@@ -12,9 +12,8 @@ const TEST_ZIP_ENTRIES = {
 };
 
 describe("run", () => {
-  beforeEach(() => {
-    contentLoader.DATA = null;
-  });
+  beforeEach(contentLoader.CACHE.clear);
+  beforeEach(entriesLoader.CACHE.clear);
   describe("only filter arguments", () => {
     test("should return entries without any arguments", async () => {
       // FYI: xmltest.zip doesn't contain any folder entries
