@@ -101,14 +101,23 @@ All methods have doc comments that include types.
 - `getContent`
 - `getEntries`
 - `load`
+- `contentLoader`
+- `entriesLoader`
 - `replaceWithWrappedCodePointAt`
 - `replaceNonTextChars`
 - `run`
 
 (Feel free to contribute by automating the extraction of the documentation to this or another file.)
 
+### with different zip files
+
+The API can be used with other zip files by passing relative or absolute file names as arguments:
+- `load` (second argument)
+- `run` (first argument)
+
 ## Related Resources
 
 - The page of the author linking to xmltest.zip: <http://www.jclark.com/xml/>
-- THe way I found those testcases since they are part of a bigger testsuite for (Java SAX parsers) <http://cafeconleche.org/SAXTest/>
+- The way I found those testcases since they are part of a bigger testsuite for (Java SAX parsers) <http://cafeconleche.org/SAXTest/>
+- The W3C also provides an XML test suite: <https://www.w3.org/XML/Test/> (the files in `xmltest.zip` are part of this but there is no clear license for the whole package)
 - The PR that initially led to the creation of this package: <https://github.com/xmldom/xmldom/pull/112>
