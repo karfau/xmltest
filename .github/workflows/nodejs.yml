@@ -22,9 +22,4 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - name: check if json up to date
-        run: |
-          npm run xmltest.json
-          git add . # make sure line endings are sanitized by git
-          git diff HEAD --exit-code
-      - run: npm run test.zip && npm test
+      - run: npm test
