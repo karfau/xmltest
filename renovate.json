@@ -1,5 +1,24 @@
 {
   "extends": [
-    "config:base"
+    "config:js-lib",
+    ":pinAllExceptPeerDependencies",
+    ":separateMultipleMajorReleases",
+    ":rebaseStalePrs",
+    ":unpublishSafe",
+    ":automergeRequireAllStatusChecks",
+    ":automergePatch",
+    ":semanticCommits"
+  ],
+  "automerge": true,
+  "masterIssue": true,
+  "masterIssueTitle": "Dependencies Dashboard (Renovate Bot)",
+  "prCreation": "not-pending",
+  "prConcurrentLimit": 1,
+  "prHourlyLimit": 4,
+  "packageRules": [
+    {
+      "packageNames": ["node"],
+      "rangeStrategy": "replace"
+    }
   ]
 }
