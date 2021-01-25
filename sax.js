@@ -1,6 +1,6 @@
 const createMethod = (list, name, wrap) => {
   const m = function (...args) {
-    list.push([name, this, ...args]);
+    list.push([name, ...args]);
   };
   m.name = name;
   if (wrap) {
