@@ -1,3 +1,5 @@
+const { replaceNonTextChars, replaceWhiteSpaceChars } = require("./xmltest");
+
 const createMethod = (list, name, wrap) => {
   const m = function (...args) {
     list.push([name, ...args]);
@@ -17,12 +19,11 @@ const createMethod = (list, name, wrap) => {
  * ```
  * [
  *    the method name,
- *    the this context when the method was called,
  *    ...any arguments passed to the method
  * ]
  * ```
  *
- * @typedef CallEntry {[string, object, ...any]}
+ * @typedef CallEntry {[string, ...any]}
  */
 
 /**
@@ -339,9 +340,7 @@ const handler = ({ alias = {}, wrap = {} } = {}) => {
    * @see MethodAssertions
    */
   const assertMethodCalls = (assertions = MethodAssertions) => {
-    Object.values(assertions).forEach(assertion =>
-      assertion(calls)
-    );
+    Object.values(assertions).forEach((assertion) => assertion(calls));
   };
   /**
    * Returns a list of recorded method calls in the recorded order.
@@ -363,7 +362,45 @@ const handler = ({ alias = {}, wrap = {} } = {}) => {
   };
 };
 
+/**
+ * Converts a CallEntry to a "minimal" and readable string ona single line.
+ * - Applies `replaceNonTextChars` and replaces any line breaks into readable replacements
+ * - Omits subsequent arguments with same value (as in `===`)
+ * - Omits `null`, `undefined` or empty string arguments
+ * - Doesn't treat object arguments in a special way, use SaxHandlerOptions.wrap for that.
+ *
+ * @param {CallEntry} callEntry
+ * @returns {string}
+ *
+ * @see SaxHandlerOptions
+ * @see replaceNonTextChars
+ */
+const callEntryToString = (callEntry) => {
+  const simple = callEntry.filter((it, i, l) => {
+    // don't put the same value twice (e.g localName === qName)
+    if (i > 0 && l[i - 1] === it) return false;
+    return it !== undefined && it !== null && it !== '';
+  });
+
+  return simple.length === 1
+    ? simple[0] // if there were no arguments, just put the method name
+    : // otherwise make sure we don't have any special chars
+      replaceWhiteSpaceChars(replaceNonTextChars(simple.join(",")));
+};
+/**
+ * Applies `callEntryToString` on every item and joins them with `\n`.
+ *
+ * @param {CallEntry[]} callEntries
+ * @param mapper
+ * @returns {string}
+ *
+ * @see callEntryToString
+ */
+const toString = (callEntries, mapper = callEntryToString) =>
+  callEntries.map(mapper).join("\n");
+
 module.exports = {
+  callEntryToString,
   getAllMethodNames,
   ContentHandlerMethods,
   DeclHandlerMethods,
@@ -373,4 +410,5 @@ module.exports = {
   LexicalHandlerMethods,
   MethodAssertions,
   SaxHandler: handler,
+  toString,
 };
