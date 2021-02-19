@@ -18,13 +18,13 @@
   "packageRules": [
     {
       "packageNames": ["node"],
-      "rangeStrategy": "replace",
+      "rangeStrategy": "replace"
+    },
     {
       "matchPackagePatterns": ["^@types\/.*"],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "stabilityDays": 0,
       "automerge": true
-    }
     }
   ]
 }
