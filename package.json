@@ -36,14 +36,14 @@
   "devDependencies": {
     "@types/node": "18.16.16",
     "@types/yauzl": "2.10.0",
-    "get-stream": "6.0.1",
+    "get-stream": "7.0.0",
     "jest": "27.5.1",
     "np": "8.0.0",
     "runex": "0.4.1",
     "yauzl": "2.10.0"
   },
   "peerDependencies": {
-    "get-stream": "^6.0.0",
+    "get-stream": "^6.0.0 || ^7.0.0",
     "yauzl": "^2.10.0"
   }
 }
