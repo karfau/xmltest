@@ -323,13 +323,31 @@ const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0).toString(
  * (e.g. replacing NUL/`&#0;` with `{!0!}`,
  * it's makes those more obvious.
  *
- * @param value {string | {toString: function (): string} | undefined}
+ * @param value {string | {toString: function (): string} | undefined | null}
  * @param wrapper {function (string): string}
+ * @returns {string}
  */
 const replaceNonTextChars = (value, wrapper = replaceWithWrappedCodePointAt) =>
-  value === undefined || value === ''
+  value === undefined || value === null || value === ''
     ? value
     : value.toString().replace(/[\u0000\u001B\u001F\uDC00\uD800\uFFFE\uFFFF]/gu, wrapper)
+
+/**
+ * Replaces the usual ambiguous whitespace chars `\n`,`\r` and `\t`
+ * with `{!n!}`, `{!r!}` and `{!t!}` so the resulting string is in a single line
+ * and it's obvious what white space characters are in it.
+ *
+ * @param value {string | {toString: function (): string} | undefined | null}
+ * @param wrapper {function(string): string} the method that does the replacement
+ * @returns {string}
+ */
+const replaceWhiteSpaceChars = (
+  value,
+  wrapper = (ch) => ({ "\n": "{!n!}", "\r": "{!r!}", "\t": "{!t!}" }[ch] || ch)
+) =>
+  value === undefined || value === null || value === ""
+    ? value
+    : value.toString().replace(/\n\r\t/gu, wrapper);
 
 module.exports = {
   combineFilters,
@@ -343,6 +361,7 @@ module.exports = {
   entriesLoader,
   replaceNonTextChars,
   replaceWithWrappedCodePointAt,
+  replaceWhiteSpaceChars,
   run
 }
 
