@@ -35,7 +35,7 @@
   "dependencies": {},
   "devDependencies": {
     "@types/node": "18.16.20",
-    "@types/yauzl": "2.10.0",
+    "@types/yauzl": "2.10.3",
     "get-stream": "6.0.1",
     "jest": "27.5.1",
     "np": "8.0.4",
