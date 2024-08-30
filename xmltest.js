@@ -20,11 +20,12 @@ const {Entry} = require('yauzl')
 /**
  * Loads all file content from the zip file.
  *
- * @param resolve {PromiseResolve}
- * @param reject {PromiseReject}
+ * @param {PromiseResolve} resolve
+ * @param {PromiseReject} reject
+ * @param {BufferEncoding} [encoding]
  * @returns {LoaderInstance}
  */
-const contentLoader = (resolve, reject) => {
+const contentLoader = (resolve, reject, encoding) => {
   /** @type {Entries} */
   const data = {};
 
@@ -34,7 +35,7 @@ const contentLoader = (resolve, reject) => {
 
   const entry = async (entry, readFile) => {
     if (!entry.fileName.endsWith('/')) {
-      data[entry.fileName] = await getStream(await readFile(entry))
+      data[entry.fileName] = await getStream(await readFile(entry), {encoding})
     }
   }
   return {end, entry}
