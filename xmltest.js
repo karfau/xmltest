@@ -1,11 +1,11 @@
-const getStream = require('get-stream')
-const path = require('path')
-const {promisify} = require('util')
-const yauzl = require('yauzl')
+const getStream = require("get-stream");
+const path = require("path");
+const { promisify } = require("util");
+const yauzl = require("yauzl");
 
-const {cache} = require('./cache')
+const { cache } = require("./cache");
 // for type definitions
-const {Entry} = require('yauzl')
+const { Entry } = require("yauzl");
 
 /**
  * @typedef Entries {Record<string, string | undefined>}
@@ -16,6 +16,15 @@ const {Entry} = require('yauzl')
  * @typedef LoaderInstance {{end: Function, entry: EntryHandler}}
  * @typedef Loader {function (resolve: PromiseResolver, PromiseReject): LoaderInstance}
  */
+
+const encodingMap = {
+  "xmltest/valid/sa/049.xml": "utf16le",
+  "xmltest/valid/sa/050.xml": "utf16le",
+  "xmltest/valid/sa/051.xml": "utf16le",
+  "xmltest/valid/sa/out/049.xml": "utf16le",
+  "xmltest/valid/sa/out/050.xml": "utf16le",
+  "xmltest/valid/sa/out/051.xml": "utf16le",
+};
 
 /**
  * Loads all file content from the zip file.
@@ -30,16 +39,23 @@ const contentLoader = (resolve, reject, encoding) => {
   const data = {};
 
   const end = () => {
-    resolve(data)
-  }
+    resolve(data);
+  };
 
   const entry = async (entry, readFile) => {
-    if (!entry.fileName.endsWith('/')) {
-      data[entry.fileName] = await getStream(await readFile(entry), {encoding})
+    if (!entry.fileName.endsWith("/")) {
+      const enc = encoding
+        ? encoding
+        : encodingMap[entry.fileName]
+          ? encodingMap[entry.fileName]
+          : "utf8";
+      data[entry.fileName] = await getStream(await readFile(entry), {
+        encoding: enc,
+      });
     }
-  }
-  return {end, entry}
-}
+  };
+  return { end, entry };
+};
 /**
  * The module level cache for the zip file content.
  *
@@ -62,17 +78,17 @@ contentLoader.CACHE = cache();
  */
 const entriesLoader = (resolve, reject) => {
   /** @type {Entries} */
-  const data = {}
+  const data = {};
   const end = () => {
-    resolve(data)
-  }
+    resolve(data);
+  };
   const entry = (entry) => {
-    data[entry.fileName] = entry.fileName.endsWith('/')
-      ? ''
-      : path.basename(entry.fileName)
-  }
-  return {end, entry}
-}
+    data[entry.fileName] = entry.fileName.endsWith("/")
+      ? ""
+      : path.basename(entry.fileName);
+  };
+  return { end, entry };
+};
 entriesLoader.CACHE = cache();
 
 /**
@@ -92,31 +108,35 @@ entriesLoader.CACHE = cache();
  * @param location {string} absolute path to zip file (default: xmltest.zip)
  * @returns {Promise<Entries>}
  */
-const load = async (loader = contentLoader, location = path.join(__dirname, 'xmltest.zip')) => {
+const load = async (
+  loader = contentLoader,
+  location = path.join(__dirname, "xmltest.zip"),
+) => {
   if (loader.CACHE && loader.CACHE.has(location)) {
-    return {...loader.CACHE.get(location)}
+    return { ...loader.CACHE.get(location) };
   }
 
-  const zipfile = await promisify(yauzl.open)(
-    location, {decodeStrings: true, lazyEntries: true}
-  )
-  const readFile = promisify(zipfile.openReadStream.bind(zipfile))
+  const zipfile = await promisify(yauzl.open)(location, {
+    decodeStrings: true,
+    lazyEntries: true,
+  });
+  const readFile = promisify(zipfile.openReadStream.bind(zipfile));
   return new Promise((resolve, reject) => {
     const resolver = loader.CACHE
       ? (data) => {
-        loader.CACHE.set(location, data);
-        resolve(data);
-      }
+          loader.CACHE.set(location, data);
+          resolve(data);
+        }
       : resolve;
     const handler = loader(resolver, reject);
-    zipfile.on('end', handler.end);
-    zipfile.on('entry', async (entry) => {
+    zipfile.on("end", handler.end);
+    zipfile.on("entry", async (entry) => {
       await handler.entry(entry, readFile);
       zipfile.readEntry();
     });
     zipfile.readEntry();
-  })
-}
+  });
+};
 
 /**
  * A function that can be passed to functions like `Array.prototype.filter`
@@ -135,24 +155,24 @@ const load = async (loader = contentLoader, location = path.join(__dirname, 'xml
  * @returns {Predicate}
  */
 const combineFilters = (...tests) => {
-  const checks = tests.map(test => {
-    if (typeof test === 'function') {
-      return test
+  const checks = tests.map((test) => {
+    if (typeof test === "function") {
+      return test;
     }
     let result;
-    if (typeof test.test === 'function') {
-      result = s => test.test(s)
-      result.toString = () => `${test.toString}.test(str)`
+    if (typeof test.test === "function") {
+      result = (s) => test.test(s);
+      result.toString = () => `${test.toString}.test(str)`;
     } else {
-      result = s => s.includes(test)
-      result.toString = () => `str.includes('${test}')`
+      result = (s) => s.includes(test);
+      result.toString = () => `str.includes('${test}')`;
     }
     return result;
-  })
-  const result = s => checks.every(check => check(s));
-  result.toString = () => `[combineFilters:(str) => ${checks.join(' && ')}]`
+  });
+  const result = (s) => checks.every((check) => check(s));
+  result.toString = () => `[combineFilters:(str) => ${checks.join(" && ")}]`;
   return result;
-}
+};
 
 /**
  * Helpful filters based on the directory structure and content of `xmltest.zip`.
@@ -165,7 +185,7 @@ const combineFilters = (...tests) => {
  * @see ent
  */
 const FILTERS = {
-  INVALID: combineFilters('xmltest/invalid'),
+  INVALID: combineFilters("xmltest/invalid"),
   NOT_WF: {
     EXT_SA: {
       files: combineFilters(/xmltest\/not-wf\/ext-sa\/[^/]+$/),
@@ -175,33 +195,33 @@ const FILTERS = {
     },
     SA: {
       files: combineFilters(/xmltest\/not-wf\/sa\/[^/]+$/),
-    }
+    },
   },
   VALID: {
     EXT_SA: {
       files: combineFilters(/xmltest\/valid\/ext-sa\/[^/]+$/),
-      OUT: combineFilters('xmltest/valid/ext-sa/out')
+      OUT: combineFilters("xmltest/valid/ext-sa/out"),
     },
     NOT_SA: {
       files: combineFilters(/xmltest\/valid\/not-sa\/[^/]+$/),
-      OUT: combineFilters('xmltest/valid/not-sa/out')
+      OUT: combineFilters("xmltest/valid/not-sa/out"),
     },
     SA: {
       files: combineFilters(/xmltest\/valid\/sa\/[^/]+$/),
-      OUT: combineFilters('xmltest/valid/sa/out')
-    }
+      OUT: combineFilters("xmltest/valid/sa/out"),
+    },
   },
   /**
    * @param s {string}
    * @returns {boolean}
    */
-  ent: s => s.endsWith('.ent'),
+  ent: (s) => s.endsWith(".ent"),
   /**
    * @param s {string}
    * @returns {boolean}
    */
-  xml: s => s.endsWith('.xml')
-}
+  xml: (s) => s.endsWith(".xml"),
+};
 
 /**
  * Converts path in zipfile (keys of entries or content)
@@ -214,7 +234,7 @@ const RELATED = {
    * @param pathInZip {string}
    * @returns {string}
    */
-  ent: pathInZip => pathInZip.replace(/\.xml$/, '.ent'),
+  ent: (pathInZip) => pathInZip.replace(/\.xml$/, ".ent"),
   /**
    * Returns the name of the related `./out/filename.xml` file with the same name as the given `.xml` file.
    * Be aware that only the `valid` folders have such files.
@@ -222,8 +242,9 @@ const RELATED = {
    * @param pathInZip {string}
    * @returns {string}
    */
-  out: pathInZip => [path.dirname(pathInZip), 'out', path.basename(pathInZip)].join('/')
-}
+  out: (pathInZip) =>
+    [path.dirname(pathInZip), "out", path.basename(pathInZip)].join("/"),
+};
 
 /**
  * Filters `data` by applying `filters` to it's keys
@@ -236,22 +257,23 @@ const RELATED = {
  *          otherwise on object with all keys that match the filter.
  */
 const getFiltered = (data, filters) => {
-  if (filters.length === 0) return {...data}
-  const key = filters[0]
-  const isSingleExistingKey = filters.length === 1 && typeof key === 'string' && key in data
+  if (filters.length === 0) return { ...data };
+  const key = filters[0];
+  const isSingleExistingKey =
+    filters.length === 1 && typeof key === "string" && key in data;
   const keys = isSingleExistingKey
     ? [key]
-    : Object.keys(data).filter(combineFilters.apply(null, filters))
+    : Object.keys(data).filter(combineFilters.apply(null, filters));
   return keys.length === 1 && filters.length === 1
     ? data[keys[0]]
     : keys.reduce(
-      (acc, key) => {
-        acc[key] = data[key]
-        return acc
-      },
-      /** @type {Entries} */{}
-    )
-}
+        (acc, key) => {
+          acc[key] = data[key];
+          return acc;
+        },
+        /** @type {Entries} */ {},
+      );
+};
 
 /**
  * Filters zip file content by applying `filters` to it's keys.
@@ -266,7 +288,7 @@ const getFiltered = (data, filters) => {
  *          if the only filter only results a single entry,
  *          otherwise on object with all keys that match the filter.
  */
-const getContent = async (...filters) => getFiltered(await load(), filters)
+const getContent = async (...filters) => getFiltered(await load(), filters);
 
 /**
  * Filters content of `xmltest.json` by applying `filters` to it's keys.
@@ -277,8 +299,8 @@ const getContent = async (...filters) => getFiltered(await load(), filters)
  *          if the only filter only results a single entry,
  *          otherwise on object with all keys that match the filter.
  */
-const getEntries = (...filters) => getFiltered(require('./xmltest.json')
-  , filters)
+const getEntries = (...filters) =>
+  getFiltered(require("./xmltest.json"), filters);
 
 /**
  * Makes module executable using `runex`.
@@ -309,11 +331,12 @@ const run = async (...filters) => {
 
   return getFiltered(
     await load(filters.length === 0 ? entriesLoader : contentLoader, file),
-    filters
+    filters,
   );
 };
 
-const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0).toString(16)}!}`
+const replaceWithWrappedCodePointAt = (char) =>
+  `{!${char.codePointAt(0).toString(16)}!}`;
 
 /**
  * Some xml documents (purposely) contain characters that are not visible
@@ -328,9 +351,11 @@ const replaceWithWrappedCodePointAt = char => `{!${char.codePointAt(0).toString(
  * @param wrapper {function (string): string}
  */
 const replaceNonTextChars = (value, wrapper = replaceWithWrappedCodePointAt) =>
-  value === undefined || value === ''
+  value === undefined || value === ""
     ? value
-    : value.toString().replace(/[\u0000\u001B\u001F\uDC00\uD800\uFFFE\uFFFF]/gu, wrapper)
+    : value
+        .toString()
+        .replace(/[\u0000\u001B\u001F\uDC00\uD800\uFFFE\uFFFF]/gu, wrapper);
 
 module.exports = {
   combineFilters,
@@ -344,11 +369,11 @@ module.exports = {
   entriesLoader,
   replaceNonTextChars,
   replaceWithWrappedCodePointAt,
-  run
-}
+  run,
+};
 
 if (require.main === module) {
   // if you don't want to use `runex` just "launch" this module/package:
   // node xmltest ...
-  module.exports.run(...process.argv.slice(2)).then(console.log)
+  module.exports.run(...process.argv.slice(2)).then(console.log);
 }
