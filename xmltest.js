@@ -355,7 +355,10 @@ const replaceNonTextChars = (value, wrapper = replaceWithWrappedCodePointAt) =>
     ? value
     : value
         .toString()
-        .replace(/[\u0000\u001B\u001F\uDC00\uD800\uFFFE\uFFFF]/gu, wrapper);
+        .replace(
+          /[\u0000\u001B\u001F\uDC00\uD800\uFFFD\uFFFE\uFFFF]/gu,
+          wrapper,
+        );
 
 module.exports = {
   combineFilters,
