@@ -34,7 +34,7 @@
   "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "@types/node": "22.18.7",
+    "@types/node": "22.18.8",
     "@types/yauzl": "2.10.3",
     "get-stream": "6.0.1",
     "jest": "30.1.3",
