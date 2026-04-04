@@ -40,7 +40,7 @@
     "jest": "30.3.0",
     "np": "11.0.2",
     "runex": "0.4.1",
-    "yauzl": "3.2.1"
+    "yauzl": "3.3.0"
   },
   "peerDependencies": {
     "get-stream": "^6.0.1",
